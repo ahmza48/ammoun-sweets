@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ammoun Sweets">
+  <!-- TEMPORARY MARK — replace with the official Ammoun Sweets logo. -->
+  <rect width="64" height="64" rx="14" fill="#123b2a"/>
+  <rect x="4.5" y="4.5" width="55" height="55" rx="10.5" fill="none" stroke="#c9a45c" stroke-opacity="0.45"/>
+  <path d="M32 13c1.7 10.8 7.7 16.8 18.5 18.5C39.7 33.2 33.7 39.2 32 50c-1.7-10.8-7.7-16.8-18.5-18.5C24.3 29.8 30.3 23.8 32 13Z" fill="#c9a45c" opacity="0.28"/>
+  <text x="32" y="40.5" font-family="Georgia, 'Times New Roman', serif" font-size="27" font-weight="600" fill="#d9bd85" text-anchor="middle">A</text>
+</svg>

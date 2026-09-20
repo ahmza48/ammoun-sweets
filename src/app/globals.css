@@ -1,0 +1,292 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   AMMOUN SWEETS — BRAND SYSTEM
+   Deep pistachio green + warm muted gold + cream.
+   Gold is decorative and for large display type only; anything small or
+   informational is set in green or charcoal so it stays readable.
+   ========================================================================== */
+
+@theme {
+  /* — Greens ————————————————————————————————————————————————— */
+  --color-forest-950: #082014;
+  --color-forest-900: #0d2f1f;
+  --color-forest-800: #123b2a; /* PRIMARY */
+  --color-forest-700: #1f5138; /* SECONDARY */
+  --color-forest-600: #2c6a49;
+  --color-forest-500: #3d8760;
+
+  /* — Golds ——————————————————————————————————————————————————— */
+  --color-gold-100: #f4e9d2;
+  --color-gold-200: #e7d3ab;
+  --color-gold-300: #d9bd85;
+  --color-gold-400: #c9a45c; /* BRAND GOLD — decorative / large type */
+  --color-gold-500: #b08b44;
+  --color-gold-700: #7c5f26; /* accessible on cream for small labels */
+
+  /* — Warm neutrals ——————————————————————————————————————————— */
+  --color-ivory: #fffdf8;
+  --color-cream: #faf7f0;
+  --color-sand: #f2ead9;
+  --color-sand-dark: #e3d7bf;
+
+  /* — Text ————————————————————————————————————————————————————— */
+  /*
+     Contrast ratios against our three light surfaces (cream / ivory / sand),
+     all comfortably past WCAG AA 4.5:1 for small text:
+       ink        16.1 / 17.0 / 14.4
+       ink-soft    7.2 /  7.6 /  6.5
+       ink-faint   5.2 /  5.5 /  4.7   ← the floor; don't lighten this
+  */
+  --color-ink: #25241e;
+  --color-ink-soft: #55534a;
+  --color-ink-faint: #6b6859;
+
+  /* — Type ————————————————————————————————————————————————————— */
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+
+  /* — Radii ——————————————————————————————————————————————————— */
+  --radius-card: 16px;
+  --radius-lg-card: 20px;
+
+  /* — Motion —————————————————————————————————————————————————— */
+  --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  /* — Breakpoint for very small phones (320px) ————————————————— */
+  --breakpoint-xs: 22.5rem;
+}
+
+/* ==========================================================================
+   BASE
+   ========================================================================== */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Sticky header height + breathing room for in-page anchors. */
+    scroll-padding-top: 6.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "kern", "liga";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Nothing on this site should ever scroll sideways. */
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: -0.005em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One consistent, high-contrast focus ring everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--color-gold-400);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* On cream surfaces the gold ring is too light — go green. */
+  .on-light :focus-visible {
+    outline-color: var(--color-forest-700);
+  }
+
+  ::selection {
+    background-color: var(--color-gold-200);
+    color: var(--color-forest-900);
+  }
+}
+
+/* ==========================================================================
+   COMPONENT-LEVEL UTILITIES
+   ========================================================================== */
+
+@utility container-page {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 80rem;
+  /* 16px gutter on phones, as specified, opening up on larger screens. */
+  padding-inline: 1rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 3rem;
+  }
+}
+
+@utility container-narrow {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 48rem;
+  padding-inline: 1rem;
+
+  @media (width >= 40rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Small gold uppercase label — the recurring "eyebrow". */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+/* Gentle arch — used on hero and card images. Restrained, not a keyhole. */
+@utility arch-top {
+  border-start-start-radius: 44% 12%;
+  border-start-end-radius: 44% 12%;
+  border-end-start-radius: var(--radius-card);
+  border-end-end-radius: var(--radius-card);
+}
+
+@utility arch-full {
+  border-start-start-radius: 50% 22%;
+  border-start-end-radius: 50% 22%;
+  border-end-start-radius: 50% 22%;
+  border-end-end-radius: 50% 22%;
+}
+
+/* Hairline gold rule used to frame dark sections. */
+@utility rule-gold {
+  border-color: color-mix(in srgb, var(--color-gold-400) 34%, transparent);
+}
+
+/* Subtle warm paper texture for cream sections — very low contrast. */
+@utility texture-paper {
+  background-image:
+    radial-gradient(
+      circle at 18% 22%,
+      color-mix(in srgb, var(--color-sand) 70%, transparent) 0%,
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 82% 78%,
+      color-mix(in srgb, var(--color-sand) 55%, transparent) 0%,
+      transparent 38%
+    );
+}
+
+/* ==========================================================================
+   LINK / UNDERLINE MOTION
+   ========================================================================== */
+
+@utility link-underline {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -0.35em;
+    height: 1px;
+    width: 100%;
+    background-color: var(--color-gold-400);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.45s var(--ease-soft);
+  }
+
+  &:hover::after,
+  &:focus-visible::after,
+  &[data-active="true"]::after {
+    transform: scaleX(1);
+  }
+}
+
+/* ==========================================================================
+   SCROLL REVEAL
+   The Reveal component toggles [data-revealed]; everything degrades to
+   "just visible" when JS is off or motion is reduced.
+   ========================================================================== */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s var(--ease-soft),
+    transform 0.7s var(--ease-soft);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+[data-reveal][data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+   Without JS nothing would ever set [data-revealed], so the content would stay
+   invisible. `scripting: none` covers modern browsers; the <noscript> block in
+   the root layout covers everything else.
+*/
+@media (scripting: none) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   MISC
+   ========================================================================== */
+
+/* Horizontal swipe rails on mobile — hide the scrollbar, keep the snap. */
+@utility swipe-rail {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 0.5rem;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  > * {
+    scroll-snap-align: start;
+  }
+}
