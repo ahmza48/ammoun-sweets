@@ -1,7 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
-import { img } from "@/data/images";
 import { formatPrice, type MenuItem } from "@/data/menu";
+import { Photo } from "./Photo";
 
 /**
  * Product card — image occupies roughly two-thirds of the card.
@@ -28,8 +27,6 @@ export function ProductCard({
   priority = false,
   className = "",
 }: ProductCardProps) {
-  const photo = img(item.image);
-
   return (
     <article className={`group relative h-full ${className}`}>
       <Link
@@ -37,15 +34,12 @@ export function ProductCard({
         className="flex h-full flex-col overflow-hidden rounded-[var(--radius-lg-card)] border border-sand-dark/70 bg-ivory transition-all duration-500 ease-[var(--ease-soft)] hover:-translate-y-1 hover:border-gold-400/55 hover:shadow-[0_24px_50px_-28px_rgba(18,59,42,0.45)]"
       >
         <div className="relative aspect-[4/3] overflow-hidden">
-          <Image
-            src={photo.src}
-            alt={photo.alt}
+          <Photo
+            image={item.image}
             fill
             priority={priority}
-            placeholder="blur"
-            blurDataURL={photo.blurDataURL}
             sizes="(min-width: 1280px) 22rem, (min-width: 768px) 32vw, (min-width: 640px) 45vw, 80vw"
-            className="object-cover transition-transform duration-[900ms] ease-[var(--ease-soft)] group-hover:scale-[1.06]"
+            className="object-cover group-hover:scale-[1.06]"
           />
           <div
             aria-hidden="true"

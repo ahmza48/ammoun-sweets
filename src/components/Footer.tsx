@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { addressLines, business, groupedHours } from "@/data/business";
 import { footerNav } from "@/data/navigation";
-import { imageCredits } from "@/data/images";
 import { Logo } from "./Logo";
 import { Ornament } from "./Ornament";
 
 export function Footer() {
   const year = new Date().getFullYear();
   const hours = groupedHours();
-  const credits = imageCredits();
 
   return (
     <footer className="relative bg-forest-900 text-cream/80">
@@ -22,7 +20,15 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
           {/* — Brand ———————————————————————————————————————— */}
           <div className="lg:col-span-4">
-            <Logo tone="light" asLink={false} className="items-start" />
+            {/* `arabic` is opt-in and flagged in Logo.tsx — confirm the
+                spelling with the owner before this goes live. */}
+            <Logo
+              tone="light"
+              variant="stacked"
+              asLink={false}
+              arabic
+              className="items-start"
+            />
             <p className="mt-6 max-w-[34ch] text-[0.92rem] leading-[1.75] text-cream/70">
               Traditional Lebanese sweets, pastries and celebration platters,
               made for sharing — on the Hume Highway at Bass Hill.
@@ -140,18 +146,6 @@ export function Footer() {
           </p>
         </div>
 
-        {/*
-          DEMO ONLY — this credit block exists because the photography is
-          free-licence stock standing in for the shop's own photos.
-          Delete it once real Ammoun Sweets photography is in place.
-        */}
-        {credits.length > 0 ? (
-          <p className="mt-6 border-t border-gold-400/10 pt-5 text-[0.68rem] leading-relaxed text-cream/30">
-            Demo preview. Photography shown is free-licence placeholder imagery
-            by {credits.map((c) => c.name).join(", ")} via Unsplash, to be
-            replaced with {business.name}&rsquo; own photographs.
-          </p>
-        ) : null}
       </div>
     </footer>
   );

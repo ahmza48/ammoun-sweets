@@ -1,6 +1,6 @@
-import Image from "next/image";
-import { img, type ImageKey } from "@/data/images";
+import type { ImageKey } from "@/data/images";
 import { Ornament } from "./Ornament";
+import { Photo } from "./Photo";
 
 /**
  * Compact hero for inner pages: a deep-green band with a soft background
@@ -23,18 +23,16 @@ export function PageHero({
   image,
   priority = true,
 }: PageHeroProps) {
-  const photo = img(image);
-
   return (
     <section className="relative isolate overflow-hidden bg-forest-900 pt-[4.5rem] lg:pt-[5.25rem]">
-      <Image
-        src={photo.src}
-        alt=""
-        aria-hidden="true"
+      {/* Dimmed to 25% under a dark gradient, so it can be requested at a
+          much lower quality without any visible difference. */}
+      <Photo
+        image={image}
+        decorative
         fill
         priority={priority}
-        placeholder="blur"
-        blurDataURL={photo.blurDataURL}
+        quality={45}
         sizes="100vw"
         className="-z-10 object-cover opacity-25"
       />

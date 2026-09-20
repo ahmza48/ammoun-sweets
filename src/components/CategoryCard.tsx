@@ -1,6 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
-import { img, type ImageKey } from "@/data/images";
+import type { ImageKey } from "@/data/images";
+import { Photo } from "./Photo";
 
 /**
  * Tall arched card used for the occasions grid and the menu category index.
@@ -25,22 +25,17 @@ export function CategoryCard({
   meta,
   className = "",
 }: CategoryCardProps) {
-  const photo = img(image);
-
   return (
     <Link
       href={href}
       className={`group relative block overflow-hidden rounded-[var(--radius-lg-card)] transition-transform duration-500 ease-[var(--ease-soft)] hover:-translate-y-1 ${className}`}
     >
       <div className="relative aspect-[3/4] w-full sm:aspect-[4/5]">
-        <Image
-          src={photo.src}
-          alt={photo.alt}
+        <Photo
+          image={image}
           fill
-          placeholder="blur"
-          blurDataURL={photo.blurDataURL}
           sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 85vw"
-          className="object-cover transition-transform duration-[900ms] ease-[var(--ease-soft)] group-hover:scale-[1.07]"
+          className="object-cover group-hover:scale-[1.07]"
         />
 
         {/*

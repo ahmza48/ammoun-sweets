@@ -1,6 +1,5 @@
-import Image from "next/image";
 import { business } from "@/data/business";
-import { img } from "@/data/images";
+import { Photo } from "./Photo";
 import { ButtonLink } from "./Button";
 import { Ornament } from "./Ornament";
 import { Reveal } from "./Reveal";
@@ -13,20 +12,18 @@ import { Reveal } from "./Reveal";
  */
 
 export function CTASection() {
-  const photo = img("mixed-platter");
-
   return (
     <section className="relative overflow-hidden bg-cream py-16 sm:py-20 lg:py-24">
       <div className="container-page">
         <Reveal>
           <div className="relative overflow-hidden rounded-[var(--radius-lg-card)] bg-forest-900">
-            <Image
-              src={photo.src}
-              alt=""
-              aria-hidden="true"
+            {/* Sits at 30% behind a near-opaque gradient — low quality is
+                invisible here and roughly halves the transfer size. */}
+            <Photo
+              image="mixed-platter"
+              decorative
               fill
-              placeholder="blur"
-              blurDataURL={photo.blurDataURL}
+              quality={45}
               sizes="(min-width: 1280px) 76rem, 100vw"
               className="object-cover opacity-30"
             />

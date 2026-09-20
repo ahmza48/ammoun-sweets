@@ -1,7 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Ammoun Sweets">
-  <!-- TEMPORARY MARK — replace with the official Ammoun Sweets logo. -->
+  <!--
+    App icon. Same mark as src/components/Logo.tsx — a baklava lozenge cut
+    into three filo bands — on the brand green.
+
+    The mark is scaled to ~76% and centred rather than filling the tile, so it
+    keeps a margin inside the rounded square at small sizes. The ringed variant
+    was tried and turns to mud at 16px; bare bands stay legible.
+  -->
   <rect width="64" height="64" rx="14" fill="#123b2a"/>
-  <rect x="4.5" y="4.5" width="55" height="55" rx="10.5" fill="none" stroke="#c9a45c" stroke-opacity="0.45"/>
-  <path d="M32 13c1.7 10.8 7.7 16.8 18.5 18.5C39.7 33.2 33.7 39.2 32 50c-1.7-10.8-7.7-16.8-18.5-18.5C24.3 29.8 30.3 23.8 32 13Z" fill="#c9a45c" opacity="0.28"/>
-  <text x="32" y="40.5" font-family="Georgia, 'Times New Roman', serif" font-size="27" font-weight="600" fill="#d9bd85" text-anchor="middle">A</text>
+  <g transform="translate(32 32) scale(0.76) translate(-32 -32)"
+     fill="#d9bd85" stroke="#d9bd85" stroke-width="1.8" stroke-linejoin="round">
+    <path d="M32 8 42.9 18.9 21.1 18.9Z"/>
+    <path d="M47.5 23.5 56 32 47.5 40.5 16.5 40.5 8 32 16.5 23.5Z"/>
+    <path d="M42.9 45.1 32 56 21.1 45.1Z"/>
+  </g>
 </svg>

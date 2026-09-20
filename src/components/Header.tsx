@@ -16,6 +16,10 @@ import { Ornament } from "./Ornament";
  * once you scroll past ~80px. On every other page it is solid from the start,
  * because those pages begin with a light band.
  *
+ * The logotype settles down a touch once you start scrolling, and a thin gold
+ * progress rule along the bottom edge shows how far through the page you are —
+ * small live details that make long, image-heavy pages feel navigable.
+ *
  * The mobile panel is a focus-trapped dialog: Escape closes it, background
  * scroll is locked, and focus returns to the toggle on close.
  */
@@ -39,11 +43,40 @@ export function Header() {
 
   const setOpen = (next: boolean) => setOpenForPath(next ? pathname : null);
 
+  /**
+   * One scroll listener drives both the solid/transparent state and the
+   * progress rule. The progress goes to a CSS custom property rather than
+   * React state so that scrolling never triggers a re-render — at 60fps that
+   * would be the single most expensive thing on the page.
+   */
+  const progressRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 80);
+    let frame = 0;
+
+    const measure = () => {
+      frame = 0;
+      const y = window.scrollY;
+      setScrolled(y > 80);
+
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? Math.min(1, y / scrollable) : 0;
+      progressRef.current?.style.setProperty("--progress", progress.toFixed(4));
+    };
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(measure);
+    };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   // Lock background scroll while the panel is open.
@@ -110,7 +143,21 @@ export function Header() {
 
       <div className="container-page">
         <div className="flex h-[4.5rem] items-center justify-between gap-4 lg:h-[5.25rem]">
-          <Logo tone="light" />
+          {/*
+            The bar keeps a fixed height on purpose — the hero's top padding
+            and the menu page's sticky category rail are both offset against
+            it, so shrinking it would leave a sliver of page showing through.
+            Scaling just the logotype gives the same "settled" feel with no
+            layout coupling at all.
+          */}
+          <span
+            className={[
+              "inline-block origin-left transition-transform duration-500 ease-[var(--ease-soft)]",
+              scrolled ? "scale-[0.94]" : "scale-100",
+            ].join(" ")}
+          >
+            <Logo tone="light" variant="horizontal" />
+          </span>
 
           {/* — Desktop navigation ————————————————————————————— */}
           <nav aria-label="Main" className="hidden lg:block">
@@ -230,6 +277,18 @@ export function Header() {
           </div>
         </div>
       </div>
+
+      {/*
+        Reading-progress rule. Scales along the header's bottom edge, so it
+        costs a composite and nothing else. Hidden from assistive tech — it is
+        decoration, and the scrollbar already conveys this.
+      */}
+      <div
+        ref={progressRef}
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-px origin-left bg-gradient-to-r from-gold-400/70 via-gold-300 to-gold-400/70"
+        style={{ scale: "var(--progress, 0) 1" }}
+      />
     </header>
   );
 }

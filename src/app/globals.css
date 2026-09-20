@@ -216,33 +216,236 @@
 }
 
 /* ==========================================================================
+   PHOTO REVEAL
+   Every <Photo> paints its 16px blur placeholder immediately, then the real
+   file arrives slightly enlarged and still soft so it matches what it is
+   covering, and settles into focus. No pop, no empty box.
+   ========================================================================== */
+
+/*
+   This selector outranks Tailwind's `.transition-transform`, so it has to
+   carry `scale`/`translate`/`rotate` too — otherwise the card hover zooms
+   (which Tailwind v4 compiles to the standalone `scale` property) would snap
+   instead of easing.
+
+   The load effect itself is filter-only on purpose: leaving transform and
+   scale alone means it can never fight a hover zoom on the same element.
+*/
+img[data-photo] {
+  transition:
+    filter 0.8s var(--ease-soft),
+    scale 0.9s var(--ease-soft),
+    transform 0.9s var(--ease-soft),
+    translate 0.9s var(--ease-soft),
+    rotate 0.9s var(--ease-soft);
+}
+
+/*
+   While loading, the only thing painted is next/image's 16px blur placeholder
+   background. Blurring it further, then releasing, is what produces the
+   "coming into focus" reveal as the real file takes over.
+*/
+img[data-photo][data-loaded="false"] {
+  filter: blur(12px) saturate(1.12);
+}
+
+img[data-photo][data-loaded="true"] {
+  filter: blur(0) saturate(1);
+}
+
+/* ==========================================================================
    SCROLL REVEAL
-   The Reveal component toggles [data-revealed]; everything degrades to
-   "just visible" when JS is off or motion is reduced.
+   The Reveal component sets [data-revealed] once its element scrolls into
+   view. `data-anim` picks the entrance; they all share one transition so a
+   staggered group stays in step.
    ========================================================================== */
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-y, 20px), 0)
+    scale(var(--reveal-scale, 1));
   transition:
-    opacity 0.7s var(--ease-soft),
-    transform 0.7s var(--ease-soft);
+    opacity 0.8s var(--ease-soft),
+    transform 0.9s var(--ease-soft),
+    filter 0.9s var(--ease-soft);
   transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+
+[data-reveal][data-anim="fade"] {
+  --reveal-y: 0px;
+}
+
+[data-reveal][data-anim="up"] {
+  --reveal-y: 26px;
+}
+
+[data-reveal][data-anim="left"] {
+  --reveal-x: -32px;
+  --reveal-y: 0px;
+}
+
+[data-reveal][data-anim="right"] {
+  --reveal-x: 32px;
+  --reveal-y: 0px;
+}
+
+/* For imagery — a touch of scale reads as the photo settling into place. */
+[data-reveal][data-anim="rise"] {
+  --reveal-y: 34px;
+  --reveal-scale: 1.035;
 }
 
 [data-reveal][data-revealed="true"] {
   opacity: 1;
   transform: none;
+  /* Releasing the hint after the animation avoids pinning a layer forever. */
+  will-change: auto;
 }
+
+/* ==========================================================================
+   ORNAMENT DRAW
+   The gold hairline rules grow out from their centre star as they reveal.
+   ========================================================================== */
+
+/*
+   Drawn by default, and collapsed only while an enclosing Reveal is still
+   pending. The obvious way round — start at scaleX(0) and grow on reveal —
+   silently hides every ornament that is NOT inside a Reveal (the footer, the
+   page heroes, the 404), leaving a gold star floating on its own. Defaulting
+   to "visible" means a missing animation costs the animation, not the element.
+*/
+[data-ornament-rule] {
+  transform: scaleX(1);
+  transition: transform 0.9s var(--ease-soft);
+  transition-delay: calc(var(--reveal-delay, 0ms) + 180ms);
+}
+
+[data-reveal]:not([data-revealed="true"]) [data-ornament-rule] {
+  transform: scaleX(0);
+}
+
+[data-ornament-rule="left"] {
+  transform-origin: right;
+}
+
+[data-ornament-rule="right"] {
+  transform-origin: left;
+}
+
+/* ==========================================================================
+   KEYFRAMES
+   ========================================================================== */
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 26px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-image-in {
+  from {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.965) translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+   Hero entrance. Runs on load rather than on scroll — this is the first thing
+   a visitor sees, so it should already be moving when the page paints.
+*/
+@utility hero-enter {
+  animation: hero-in 0.95s var(--ease-soft) both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+
+@utility hero-image-enter {
+  animation: hero-image-in 1.3s var(--ease-soft) both;
+  animation-delay: var(--enter-delay, 120ms);
+}
+
+/* Route change. Short on purpose — longer reads as latency, not polish. */
+@utility page-enter {
+  animation: page-in 0.45s var(--ease-soft) both;
+}
+
+@utility dialog-enter {
+  animation: dialog-in 0.42s var(--ease-soft) both;
+}
+
+@utility backdrop-enter {
+  animation: backdrop-in 0.3s ease-out both;
+}
+
+/* ==========================================================================
+   MOTION PREFERENCES
+   One place that turns everything above into a plain cut.
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  [data-reveal] {
+  [data-reveal],
+  [data-ornament-rule] {
     opacity: 1;
     transform: none;
+    transition: none;
+  }
+
+  img[data-photo],
+  img[data-photo][data-loaded="false"] {
+    filter: none;
     transition: none;
   }
 
@@ -257,14 +460,20 @@
 }
 
 /*
-   Without JS nothing would ever set [data-revealed], so the content would stay
-   invisible. `scripting: none` covers modern browsers; the <noscript> block in
-   the root layout covers everything else.
+   Without JS nothing would ever set [data-revealed] or [data-loaded], so the
+   content would stay hidden and the photos stay blurred. `scripting: none`
+   covers modern browsers; the <noscript> block in the root layout covers
+   everything else.
 */
 @media (scripting: none) {
-  [data-reveal] {
+  [data-reveal],
+  [data-ornament-rule] {
     opacity: 1;
     transform: none;
+  }
+
+  img[data-photo] {
+    filter: none;
   }
 }
 

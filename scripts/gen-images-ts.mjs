@@ -24,10 +24,14 @@ fs.writeFileSync("src/data/images.ts", `/**
  * and are not free to reuse. If you add one, check the source URL is on
  * images.unsplash.com and NOT plus.unsplash.com.
  *
+ * The \`credit\` fields record where each placeholder came from. They are kept
+ * for provenance only and are NOT rendered anywhere on the site — the Unsplash
+ * License does not require attribution.
+ *
  * To swap in the owner's photos: drop a file with the same name into
- * /public/images (e.g. public/images/knafeh-ashta.jpg), update \`width\`,
- * \`height\` and \`alt\`, then delete its \`credit\` and \`creditUrl\` fields.
- * Nothing else in the codebase needs to change — see public/images/README.md.
+ * /public/images (e.g. public/images/knafeh-ashta.jpg), then update \`width\`,
+ * \`height\` and \`alt\` here. Nothing else in the codebase needs to change —
+ * see public/images/README.md.
  *
  * \`blurDataURL\` is a 16px LQIP so next/image can fade the photo in instead of
  * flashing empty space; \`width\`/\`height\` are the intrinsic pixel dimensions
@@ -42,7 +46,7 @@ export type SiteImage = {
   height: number;
   alt: string;
   blurDataURL: string;
-  /** Attribution for the demo placeholder only. Remove with the real photos. */
+  /** Provenance of the demo placeholder. Not rendered; drop with the real photo. */
   credit?: string;
   creditUrl?: string;
 };
@@ -55,15 +59,6 @@ export type ImageKey = keyof typeof images;
 
 export function img(key: ImageKey): SiteImage {
   return images[key];
-}
-
-/** De-duplicated attribution list for the demo credit note in the footer. */
-export function imageCredits(): { name: string; url: string }[] {
-  const seen = new Map<string, string>();
-  for (const value of Object.values(images) as SiteImage[]) {
-    if (value.credit && value.creditUrl) seen.set(value.credit, value.creditUrl);
-  }
-  return [...seen].map(([name, url]) => ({ name, url }));
 }
 `);
 

@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { BreadcrumbJsonLd, MenuJsonLd } from "@/components/JsonLd";
 import { ButtonLink } from "@/components/Button";
 import { CTASection } from "@/components/CTASection";
 import { MenuCategoryNav } from "@/components/MenuCategoryNav";
 import { Ornament, OrnamentDots } from "@/components/Ornament";
 import { PageHero } from "@/components/PageHero";
+import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
 import { business } from "@/data/business";
-import { img } from "@/data/images";
 import { formatPrice, menu, priceDisclaimer } from "@/data/menu";
 
 export const metadata: Metadata = {
@@ -39,7 +38,6 @@ export default function MenuPage() {
 
       <div className="texture-paper bg-cream">
         {menu.map((category, categoryIndex) => {
-          const photo = img(category.image);
           const flip = categoryIndex % 2 === 1;
 
           return (
@@ -77,13 +75,10 @@ export default function MenuPage() {
                     </p>
 
                     <div className="arch-top relative mt-8 aspect-[4/3] overflow-hidden shadow-[0_22px_50px_-30px_rgba(18,59,42,0.5)]">
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
+                      <Photo
+                        image={category.image}
                         fill
-                        placeholder="blur"
-                        blurDataURL={photo.blurDataURL}
-                        loading={categoryIndex === 0 ? "eager" : "lazy"}
+                        eager={categoryIndex === 0}
                         sizes="(min-width: 1024px) 34vw, 92vw"
                         className="object-cover"
                       />
@@ -93,22 +88,16 @@ export default function MenuPage() {
                   {/* — Items ——————————————————————————————————— */}
                   <div>
                     <ul className="divide-y divide-sand-dark/70 border-y border-sand-dark/70">
-                      {category.items.map((item, itemIndex) => {
-                        const itemPhoto = img(item.image);
-                        return (
+                      {category.items.map((item, itemIndex) => (
                           <li key={item.id} id={item.id} className="scroll-mt-32">
-                            <Reveal delay={Math.min(itemIndex * 50, 200)}>
+                            <Reveal anim="fade" delay={Math.min(itemIndex * 50, 200)}>
                               <div className="flex gap-4 py-6 sm:gap-6 sm:py-7">
-                                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[12px] border border-sand-dark/70 sm:h-28 sm:w-28">
-                                  <Image
-                                    src={itemPhoto.src}
-                                    alt={itemPhoto.alt}
+                                <div className="group/thumb relative h-20 w-20 shrink-0 overflow-hidden rounded-[12px] border border-sand-dark/70 sm:h-28 sm:w-28">
+                                  <Photo
+                                    image={item.image}
                                     fill
-                                    placeholder="blur"
-                                    blurDataURL={itemPhoto.blurDataURL}
-                                    loading="lazy"
                                     sizes="(min-width: 640px) 7rem, 5rem"
-                                    className="object-cover"
+                                    className="object-cover transition-transform duration-700 ease-[var(--ease-soft)] group-hover/thumb:scale-110"
                                   />
                                 </div>
 
@@ -149,8 +138,7 @@ export default function MenuPage() {
                               </div>
                             </Reveal>
                           </li>
-                        );
-                      })}
+                      ))}
                     </ul>
                   </div>
                 </div>

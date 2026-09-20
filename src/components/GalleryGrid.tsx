@@ -1,13 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Photo } from "./Photo";
 import {
   gallery,
   galleryCategories,
   type GalleryCategoryId,
 } from "@/data/gallery";
-import { img } from "@/data/images";
 
 /**
  * Filterable masonry gallery with a keyboard-accessible lightbox.
@@ -67,7 +66,6 @@ export function GalleryGrid() {
   }, [openIndex, close, step]);
 
   const active = openIndex === null ? null : items[openIndex];
-  const activePhoto = active ? img(active.image) : null;
 
   return (
     <>
@@ -101,9 +99,7 @@ export function GalleryGrid() {
 
       {/* — Masonry ————————————————————————————————————————— */}
       <div className="mt-10 columns-1 gap-4 min-[480px]:columns-2 lg:columns-3 lg:gap-5">
-        {items.map((item, index) => {
-          const photo = img(item.image);
-          return (
+        {items.map((item, index) => (
             <button
               key={`${item.image}-${filter}`}
               type="button"
@@ -114,16 +110,12 @@ export function GalleryGrid() {
               className="group mb-4 block w-full break-inside-avoid overflow-hidden rounded-[var(--radius-card)] border border-sand-dark/60 bg-ivory text-left transition-all duration-500 ease-[var(--ease-soft)] hover:-translate-y-1 hover:border-gold-400/50 hover:shadow-[0_22px_46px_-26px_rgba(18,59,42,0.45)] lg:mb-5"
             >
               <span className="relative block overflow-hidden">
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={photo.width}
-                  height={photo.height}
-                  placeholder="blur"
-                  blurDataURL={photo.blurDataURL}
-                  loading={index < 3 ? "eager" : "lazy"}
+                <Photo
+                  image={item.image}
+                  alt={item.caption}
+                  eager={index < 3}
                   sizes="(min-width: 1024px) 30vw, (min-width: 480px) 45vw, 92vw"
-                  className="h-auto w-full transition-transform duration-[900ms] ease-[var(--ease-soft)] group-hover:scale-[1.05]"
+                  className="h-auto w-full group-hover:scale-[1.05]"
                 />
                 <span
                   aria-hidden="true"
@@ -139,8 +131,7 @@ export function GalleryGrid() {
                 </span>
               </span>
             </button>
-          );
-        })}
+        ))}
       </div>
 
       {items.length === 0 ? (
@@ -150,26 +141,29 @@ export function GalleryGrid() {
       ) : null}
 
       {/* — Lightbox ———————————————————————————————————————— */}
-      {active && activePhoto ? (
+      {active ? (
         <div
           role="dialog"
           aria-modal="true"
           aria-label={active.caption}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-forest-950/94 p-4 backdrop-blur-sm sm:p-8"
+          className="backdrop-enter fixed inset-0 z-[60] flex items-center justify-center bg-forest-950/94 p-4 backdrop-blur-sm sm:p-8"
           onClick={close}
         >
           <div
-            className="relative max-h-full w-full max-w-4xl"
+            /*
+              `key` restarts the entrance animation on every photo change, so
+              stepping through with the arrow keys feels like turning pages
+              rather than swapping a src.
+            */
+            key={active.image}
+            className="dialog-enter relative max-h-full w-full max-w-4xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="relative overflow-hidden rounded-[var(--radius-lg-card)] border border-gold-400/25">
-              <Image
-                src={activePhoto.src}
-                alt={activePhoto.alt}
-                width={activePhoto.width}
-                height={activePhoto.height}
-                placeholder="blur"
-                blurDataURL={activePhoto.blurDataURL}
+              <Photo
+                image={active.image}
+                alt={active.caption}
+                eager
                 sizes="(min-width: 1024px) 56rem, 92vw"
                 className="max-h-[72dvh] w-full object-contain"
               />

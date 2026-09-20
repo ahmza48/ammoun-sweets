@@ -14,16 +14,27 @@ import type { ComponentProps, ReactNode } from "react";
 export type ButtonVariant = "gold" | "outline" | "ghost";
 export type ButtonSize = "md" | "lg";
 
+/**
+ * `relative overflow-hidden` and `isolate` are here for the gold variant's
+ * shine sweep — a pseudo-element that travels across the button on hover.
+ * Keeping them on the base means every variant clips its own effects.
+ */
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full font-sans font-semibold " +
-  "tracking-[0.1em] uppercase transition-all duration-300 ease-[var(--ease-soft)] " +
+  "group/btn relative isolate inline-flex items-center justify-center gap-2 overflow-hidden " +
+  "rounded-full font-sans font-semibold tracking-[0.1em] uppercase " +
+  "transition-all duration-300 ease-[var(--ease-soft)] " +
   "disabled:cursor-not-allowed disabled:opacity-60";
 
 const variants: Record<ButtonVariant, string> = {
   gold:
     "bg-gold-400 text-forest-900 shadow-[0_1px_0_0_rgba(255,255,255,0.35)_inset] " +
     "hover:bg-gold-300 hover:shadow-[0_6px_20px_-8px_rgba(201,164,92,0.75)] hover:-translate-y-px " +
-    "active:translate-y-0",
+    "active:translate-y-0 " +
+    // Light sweeps across the face on hover — the gold equivalent of a sheen
+    // on foil packaging. Pure CSS, one composited layer, no JS.
+    "before:pointer-events-none before:absolute before:inset-y-0 before:-left-1/3 before:-z-10 " +
+    "before:w-1/3 before:bg-[linear-gradient(100deg,transparent,rgba(255,253,248,0.65),transparent)] " +
+    "before:opacity-0 hover:before:animate-[shimmer_0.85s_var(--ease-soft)] hover:before:opacity-100",
   outline:
     "border border-gold-400/55 text-gold-200 hover:border-gold-400 hover:bg-gold-400/10 " +
     "hover:text-gold-100 hover:-translate-y-px active:translate-y-0",

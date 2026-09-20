@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { business } from "@/data/business";
 
 /**
@@ -10,12 +11,14 @@ type GoogleRatingProps = {
   /** Compact = stars + one line. Full adds the review count chip. */
   variant?: "compact" | "full";
   className?: string;
+  style?: CSSProperties;
 };
 
 export function GoogleRating({
   tone = "light",
   variant = "compact",
   className = "",
+  style,
 }: GoogleRatingProps) {
   const { rating, reviewCount, reviewCountIsApproximate } = business.google;
   const onDark = tone === "light";
@@ -25,7 +28,7 @@ export function GoogleRating({
     : `${reviewCount} Google reviews`;
 
   return (
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-2 ${className}`}>
+    <div style={style} className={`flex flex-wrap items-center gap-x-3 gap-y-2 ${className}`}>
       <Stars rating={rating} tone={tone} />
 
       <p

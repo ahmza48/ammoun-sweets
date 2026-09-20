@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { BreadcrumbJsonLd } from "@/components/JsonLd";
 import { ButtonLink } from "@/components/Button";
 import { Ornament } from "@/components/Ornament";
 import { PageHero } from "@/components/PageHero";
 import { ReviewsSection } from "@/components/ReviewsSection";
+import { Parallax } from "@/components/Parallax";
+import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { business } from "@/data/business";
-import { img } from "@/data/images";
 
 export const metadata: Metadata = {
   title: "Our Story — A Lebanese Sweets Shop in Bass Hill",
@@ -42,9 +42,6 @@ const values = [
 ];
 
 export default function OurStoryPage() {
-  const lead = img("craft-pistachio");
-  const wide = img("in-store-display");
-
   return (
     <>
       <PageHero
@@ -65,21 +62,20 @@ export default function OurStoryPage() {
       <section className="bg-ivory py-16 sm:py-20 lg:py-24">
         <div className="container-page">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <Reveal>
+            <Reveal anim="rise">
               <div className="arch-top relative aspect-[4/3.3] overflow-hidden shadow-[0_28px_60px_-34px_rgba(18,59,42,0.6)]">
-                <Image
-                  src={lead.src}
-                  alt={lead.alt}
-                  fill
-                  placeholder="blur"
-                  blurDataURL={lead.blurDataURL}
-                  sizes="(min-width: 1024px) 46vw, 92vw"
-                  className="object-cover"
-                />
+                <Parallax strength={20}>
+                  <Photo
+                    image="craft-pistachio"
+                    fill
+                    sizes="(min-width: 1024px) 46vw, 92vw"
+                    className="object-cover"
+                  />
+                </Parallax>
               </div>
             </Reveal>
 
-            <Reveal delay={80}>
+            <Reveal anim="right" delay={80}>
               <p className="eyebrow text-gold-700">Who We Are</p>
               <h2 className="mt-5 text-[1.9rem] leading-[1.08] text-forest-800 sm:text-[2.4rem]">
                 A Lebanese sweets shop on the Hume Highway
@@ -128,21 +124,15 @@ export default function OurStoryPage() {
           />
 
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {values.map((value, index) => {
-              const photo = img(value.image);
-              return (
-                <Reveal key={value.title} delay={index * 70}>
-                  <article className="h-full overflow-hidden rounded-[var(--radius-lg-card)] border border-sand-dark/70 bg-ivory">
-                    <div className="relative aspect-[4/3]">
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
+            {values.map((value, index) => (
+                <Reveal key={value.title} anim="rise" delay={index * 70}>
+                  <article className="group h-full overflow-hidden rounded-[var(--radius-lg-card)] border border-sand-dark/70 bg-ivory transition-shadow duration-500 hover:shadow-[0_24px_50px_-30px_rgba(18,59,42,0.4)]">
+                    <div className="relative aspect-[4/3] overflow-hidden">
+                      <Photo
+                        image={value.image}
                         fill
-                        placeholder="blur"
-                        blurDataURL={photo.blurDataURL}
-                        loading="lazy"
                         sizes="(min-width: 768px) 32vw, 92vw"
-                        className="object-cover"
+                        className="object-cover group-hover:scale-[1.05]"
                       />
                     </div>
                     <div className="p-6 sm:p-7">
@@ -156,8 +146,7 @@ export default function OurStoryPage() {
                     </div>
                   </article>
                 </Reveal>
-              );
-            })}
+            ))}
           </div>
         </div>
       </section>
@@ -165,13 +154,10 @@ export default function OurStoryPage() {
       {/* — Wide image band ——————————————————————————————— */}
       <section className="relative">
         <div className="relative h-[16rem] w-full sm:h-[22rem] lg:h-[28rem]">
-          <Image
-            src={wide.src}
-            alt={wide.alt}
+          <Photo
+            image="in-store-display"
             fill
-            placeholder="blur"
-            blurDataURL={wide.blurDataURL}
-            loading="lazy"
+            quality={60}
             sizes="100vw"
             className="object-cover"
           />

@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { BreadcrumbJsonLd } from "@/components/JsonLd";
 import { ButtonLink } from "@/components/Button";
 import { EnquiryForm } from "@/components/EnquiryForm";
 import { Ornament } from "@/components/Ornament";
 import { PageHero } from "@/components/PageHero";
+import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { business } from "@/data/business";
-import { img } from "@/data/images";
 import { occasions } from "@/data/occasions";
 
 export const metadata: Metadata = {
@@ -26,8 +25,6 @@ export const metadata: Metadata = {
  */
 
 export default function CateringPage() {
-  const hero = img("celebration-table");
-
   return (
     <>
       <PageHero
@@ -112,14 +109,11 @@ export default function CateringPage() {
               </div>
             </Reveal>
 
-            <Reveal delay={80}>
+            <Reveal anim="rise" delay={80}>
               <div className="arch-top relative aspect-[4/4.4] overflow-hidden shadow-[0_28px_60px_-34px_rgba(18,59,42,0.6)]">
-                <Image
-                  src={hero.src}
-                  alt={hero.alt}
+                <Photo
+                  image="celebration-table"
                   fill
-                  placeholder="blur"
-                  blurDataURL={hero.blurDataURL}
                   sizes="(min-width: 1024px) 46vw, 92vw"
                   className="object-cover"
                 />
@@ -139,24 +133,18 @@ export default function CateringPage() {
           />
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {occasions.map((occasion, index) => {
-              const photo = img(occasion.image);
-              return (
-                <Reveal key={occasion.id} delay={index * 60}>
+            {occasions.map((occasion, index) => (
+                <Reveal key={occasion.id} anim="rise" delay={index * 60}>
                   <article
                     id={occasion.id}
-                    className="h-full scroll-mt-32 overflow-hidden rounded-[var(--radius-lg-card)] border border-sand-dark/70 bg-ivory"
+                    className="group h-full scroll-mt-32 overflow-hidden rounded-[var(--radius-lg-card)] border border-sand-dark/70 bg-ivory transition-all duration-500 ease-[var(--ease-soft)] hover:-translate-y-1 hover:border-gold-400/50 hover:shadow-[0_24px_50px_-30px_rgba(18,59,42,0.4)]"
                   >
-                    <div className="relative aspect-[16/10]">
-                      <Image
-                        src={photo.src}
-                        alt={photo.alt}
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <Photo
+                        image={occasion.image}
                         fill
-                        placeholder="blur"
-                        blurDataURL={photo.blurDataURL}
-                        loading="lazy"
                         sizes="(min-width: 1024px) 30vw, (min-width: 640px) 45vw, 92vw"
-                        className="object-cover"
+                        className="object-cover group-hover:scale-[1.05]"
                       />
                     </div>
                     <div className="p-6">
@@ -170,8 +158,7 @@ export default function CateringPage() {
                     </div>
                   </article>
                 </Reveal>
-              );
-            })}
+            ))}
           </div>
         </div>
       </section>

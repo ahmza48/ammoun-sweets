@@ -18,6 +18,17 @@ const nextConfig: NextConfig = {
     deviceSizes: [384, 640, 750, 828, 1080, 1280, 1600],
     imageSizes: [96, 128, 200, 256, 320],
 
+    /**
+     * Next only generates the quality levels listed here, so every value used
+     * by a <Photo> has to appear:
+     *   45 — dimmed background imagery (page heroes, the order CTA panel),
+     *        where the photo sits at 25–30% opacity under a gradient and the
+     *        drop in quality is invisible but roughly halves the bytes;
+     *   60 — the full-width band on Our Story, partly covered by a scrim;
+     *   75 — everything the visitor actually looks at.
+     */
+    qualities: [45, 60, 75],
+
     // Photos are content, not chrome — a long cache is safe because a new
     // photo means a new file and a new build.
     minimumCacheTTL: 60 * 60 * 24 * 30,

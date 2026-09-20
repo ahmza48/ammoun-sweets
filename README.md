@@ -68,7 +68,58 @@ Defined once as CSS custom properties in `src/app/globals.css`:
 Every text colour on the site was checked against its real background; the
 contrast notes are in the `@theme` block.
 
-## Photography is a placeholder — replace it
+## Logo
+
+`src/components/Logo.tsx`. The mark is a **baklava lozenge cut into three filo
+bands** — the diamond is how baklava is cut, the horizontal cuts are its
+layers. It was picked over an "A" monogram (generic), an arch (read as a
+doorway) and a plain diamond (read as a gem) because it says *this* category of
+shop at a glance and still holds together at 16px.
+
+Three lockups, all from the same component:
+
+| `variant` | Used for |
+| --- | --- |
+| `horizontal` | Header — mark, gold hairline divider, stacked wordmark |
+| `stacked` | Footer and large use — mark above the wordmark |
+| `mark` | Any square icon slot; the same paths are in `public/favicon.svg` |
+
+The wordmark is Cormorant Garamond with wide tracking and a rule either side of
+"SWEETS". Two implementation notes:
+
+- The mark is three filled paths, not one shape behind an SVG mask. A mask
+  needs an element `id`, which collides when the logo appears twice on a page
+  and would otherwise mean `useId` — forcing this into a Client Component for
+  no reason.
+- `arabic` adds **حلويات عمون** under the wordmark (on in the footer). This is
+  the standard literal rendering of the name, **not** a spelling we have seen
+  the business use — confirm it with the owner or drop the prop.
+
+**This is a proposed identity, not the shop's existing one.** No official
+Ammoun Sweets logo appears in their public material. If the owner has artwork,
+replace `LogoMark` and keep the props — every usage site stays as it is.
+
+## Images
+
+Every photo on the site goes through one component, `src/components/Photo.tsx`,
+so loading behaviour is tuned in a single place:
+
+- **Nothing ever renders as an empty box.** A 16px blur placeholder paints
+  immediately, then the real file arrives and sharpens into focus over ~800ms.
+  Load detection listens on the DOM node *and* checks `complete` at attach
+  time, because an image served from cache can finish before React attaches a
+  handler — and an image that never reports back would stay blurred forever.
+- **Nothing is downloaded larger than it is displayed.** Every call site passes
+  an honest `sizes`, and `next.config.ts` caps `deviceSizes` at 1600px so Next
+  never upscales past the source files.
+- **Dimmed background imagery is requested at `quality={45}`.** At 25–30%
+  opacity behind a gradient the difference is invisible and it roughly halves
+  the bytes. Any quality used has to be listed in `images.qualities`.
+- **AVIF first, WebP second**, both generated on demand and cached for 30 days.
+
+The home page loads ~95KB of imagery above the fold and measures **CLS 0.000**.
+
+### The photography is a placeholder — replace it
 
 `public/images/` contains free-licence Unsplash photos standing in for real
 Ammoun Sweets photography. They were chosen to match the shop's actual products
@@ -76,14 +127,43 @@ Ammoun Sweets photography. They were chosen to match the shop's actual products
 Western cakes, but **they are not photos of this business.**
 
 To replace one: drop a file with the same name into `public/images/`, then
-update its `width`, `height` and `alt` in `src/data/images.ts` and delete its
-`credit` fields. When no entry has a `credit`, the placeholder attribution note
-at the bottom of the footer disappears by itself. See
-`public/images/README.md` for the full list.
+update its `width`, `height` and `alt` in `src/data/images.ts`. See
+`public/images/README.md` for the full list. The `credit` fields there record
+provenance and are not rendered anywhere — the Unsplash License does not
+require attribution.
 
-`scripts/` holds the tooling used to assemble that set
+`scripts/` holds the tooling used to assemble the placeholder set
 (`gen-images-ts.mjs` regenerates `src/data/images.ts` and the image README from
 `scripts/images.manifest.json`). It is not part of the build.
+
+## Motion
+
+All of it is CSS transitions and keyframes driven by data attributes; there is
+no animation library. The rules live together at the bottom of
+`src/app/globals.css`.
+
+| Effect | Where |
+| --- | --- |
+| Staggered entrance on the hero, running at load rather than on scroll | `Hero.tsx`, `hero-enter` |
+| Scroll reveals with `up` / `fade` / `left` / `right` / `rise` variants | `Reveal.tsx`, `[data-anim]` |
+| Gold ornament rules drawing outwards from their centre star | `Ornament.tsx`, `[data-ornament-rule]` |
+| Photos sharpening into focus as they load | `Photo.tsx`, `[data-photo]` |
+| Gentle parallax inside fixed picture frames | `Parallax.tsx` |
+| Reading-progress rule and logotype settle in the header | `Header.tsx` |
+| Shine sweep across the primary button | `Button.tsx` |
+| Fade-up on route change | `src/app/template.tsx` |
+| Lightbox scale-in, restarting per photo | `GalleryGrid.tsx` |
+
+Two things worth knowing if you change any of it:
+
+- `prefers-reduced-motion` turns **all** of it into a plain cut, including the
+  JavaScript-driven parallax, which checks the media query itself via
+  `src/lib/useReducedMotion.ts`. Verified: with reduced motion on, all 28
+  reveals are visible before any scrolling and parallax never runs.
+- `Reveal` treats "already scrolled past" as revealed, not just
+  "intersecting". IntersectionObserver coalesces its callbacks, so a fast flick
+  of the wheel can carry an element from below the fold to above it between two
+  deliveries — without that fallback, the section would stay invisible.
 
 ## Before this goes live
 
@@ -98,6 +178,8 @@ These are wired up but deliberately flagged:
 - The catering enquiry form composes an email in the visitor's mail client
   because no enquiry inbox has been confirmed. `handleSubmit` in
   `src/components/EnquiryForm.tsx` is the one place to swap in a real POST.
+- The logo is a proposal and the Arabic wordmark is unconfirmed — see **Logo**.
+- The photography is placeholder stock — see **Images**.
 
 ## Deliberate omissions
 
