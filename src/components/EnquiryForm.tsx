@@ -1,17 +1,17 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState } from "react";
 import { business } from "@/data/business";
 import { enquiryTypes } from "@/data/occasions";
 import { Button } from "./Button";
+import { submitCateringEnquiry, type EnquiryState } from "@/app/catering/actions";
 
 /**
  * Large-order enquiry form.
  *
- * DEMO BEHAVIOUR: there is no backend, so this composes a pre-filled email
- * (and offers a phone fallback) rather than silently pretending to submit.
- * When the owner picks an inbox or a form service, replace `handleSubmit`
- * with a POST — the markup and validation stay as they are.
+ * Submits to a Server Action that stores the enquiry in the database and
+ * notifies the shop — it is no longer a mailto: link. The shop sees every
+ * enquiry in the admin panel whether or not the email got through.
  */
 
 const FIELD =
@@ -21,135 +21,99 @@ const FIELD =
 
 const LABEL = "block text-[0.8rem] font-semibold uppercase tracking-[0.14em] text-forest-800";
 
+const initial: EnquiryState = { status: "idle" };
+
 export function EnquiryForm() {
-  const [name, setName] = useState("");
-  const [contact, setContact] = useState("");
-  const [type, setType] = useState<string>(enquiryTypes[0]);
-  const [date, setDate] = useState("");
-  const [guests, setGuests] = useState("");
-  const [details, setDetails] = useState("");
-  const [sent, setSent] = useState(false);
+  const [state, formAction, pending] = useActionState(submitCateringEnquiry, initial);
 
-  const mailto = useMemo(() => {
-    const subject = `Large order enquiry — ${type}`;
-    const body = [
-      `Name: ${name || "—"}`,
-      `Best contact: ${contact || "—"}`,
-      `Occasion: ${type}`,
-      `Date needed: ${date || "—"}`,
-      `Approx. number of people: ${guests || "—"}`,
-      "",
-      "Details:",
-      details || "—",
-    ].join("\n");
+  const error = (key: string) => state.fieldErrors?.[key];
 
-    // DEMO: no public enquiry inbox is confirmed, so this opens the
-    // customer's own mail client with everything filled in.
-    return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  }, [name, contact, type, date, guests, details]);
-
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    window.location.href = mailto;
-    setSent(true);
+  if (state.status === "success") {
+    return (
+      <div role="status" className="rounded-[12px] border border-forest-700/30 bg-forest-800/5 px-6 py-8 text-center">
+        <p className="font-display text-[1.6rem] text-forest-800">Thank you</p>
+        <p className="mx-auto mt-3 max-w-[40ch] text-[0.95rem] leading-relaxed text-ink-soft">
+          {state.message}
+        </p>
+        <p className="mt-4 text-[0.88rem] text-ink-soft">
+          In a hurry? Call us on{" "}
+          <a
+            href={`tel:${business.phone}`}
+            className="font-semibold text-forest-800 underline underline-offset-4"
+          >
+            {business.displayPhone}
+          </a>
+          .
+        </p>
+      </div>
+    );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="on-light" noValidate={false}>
+    <form action={formAction} className="on-light">
+      {state.status === "error" && state.message ? (
+        <p
+          role="alert"
+          className="mb-5 rounded-[10px] border border-red-300 bg-red-50 px-4 py-3 text-[0.88rem] text-red-900"
+        >
+          {state.message}
+        </p>
+      ) : null}
+
+      {/*
+        Honeypot. Hidden from sight and from assistive tech, and never
+        autofilled — only a bot fills it in.
+      */}
+      <div aria-hidden="true" className="absolute left-[-9999px] h-px w-px overflow-hidden">
+        <label htmlFor="website">Leave this empty</label>
+        <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+
       <div className="grid gap-5 sm:grid-cols-2">
         <div>
-          <label className={LABEL} htmlFor="enq-name">
-            Your name
-          </label>
-          <input
-            id="enq-name"
-            name="name"
-            type="text"
-            required
-            autoComplete="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={`mt-2 ${FIELD}`}
-            placeholder="First and last name"
-          />
+          <label className={LABEL} htmlFor="name">Your name</label>
+          <input id="name" name="name" type="text" required autoComplete="name" className={`mt-2 ${FIELD}`} placeholder="First and last name" />
+          {error("name") ? <p className="mt-1.5 text-[0.82rem] text-red-700">{error("name")}</p> : null}
         </div>
 
         <div>
-          <label className={LABEL} htmlFor="enq-contact">
-            Phone or email
-          </label>
-          <input
-            id="enq-contact"
-            name="contact"
-            type="text"
-            required
-            autoComplete="tel"
-            value={contact}
-            onChange={(e) => setContact(e.target.value)}
-            className={`mt-2 ${FIELD}`}
-            placeholder="How should we get back to you?"
-          />
+          <label className={LABEL} htmlFor="phone">Phone</label>
+          <input id="phone" name="phone" type="tel" autoComplete="tel" className={`mt-2 ${FIELD}`} placeholder="0412 345 678" />
+          {error("phone") ? <p className="mt-1.5 text-[0.82rem] text-red-700">{error("phone")}</p> : null}
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className={LABEL} htmlFor="email">Email</label>
+          <input id="email" name="email" type="email" autoComplete="email" className={`mt-2 ${FIELD}`} placeholder="you@example.com" />
+          {error("email") ? <p className="mt-1.5 text-[0.82rem] text-red-700">{error("email")}</p> : null}
         </div>
 
         <div>
-          <label className={LABEL} htmlFor="enq-type">
-            What&rsquo;s the occasion?
-          </label>
-          <select
-            id="enq-type"
-            name="type"
-            value={type}
-            onChange={(e) => setType(e.target.value)}
-            className={`mt-2 ${FIELD}`}
-          >
+          <label className={LABEL} htmlFor="occasion">What&rsquo;s the occasion?</label>
+          <select id="occasion" name="occasion" className={`mt-2 ${FIELD}`} defaultValue={enquiryTypes[0]}>
             {enquiryTypes.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+              <option key={option} value={option}>{option}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className={LABEL} htmlFor="enq-date">
-            Date you need it
-          </label>
-          <input
-            id="enq-date"
-            name="date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={`mt-2 ${FIELD}`}
-          />
+          <label className={LABEL} htmlFor="eventDate">Date you need it</label>
+          <input id="eventDate" name="eventDate" type="date" className={`mt-2 ${FIELD}`} />
         </div>
 
         <div className="sm:col-span-2">
-          <label className={LABEL} htmlFor="enq-guests">
-            Roughly how many people?
-          </label>
-          <input
-            id="enq-guests"
-            name="guests"
-            type="text"
-            inputMode="numeric"
-            value={guests}
-            onChange={(e) => setGuests(e.target.value)}
-            className={`mt-2 ${FIELD}`}
-            placeholder="e.g. 40"
-          />
+          <label className={LABEL} htmlFor="guests">Roughly how many people?</label>
+          <input id="guests" name="guests" type="text" inputMode="numeric" className={`mt-2 ${FIELD}`} placeholder="e.g. 40" />
         </div>
 
         <div className="sm:col-span-2">
-          <label className={LABEL} htmlFor="enq-details">
-            Tell us what you have in mind
-          </label>
+          <label className={LABEL} htmlFor="message">Tell us what you have in mind</label>
           <textarea
-            id="enq-details"
-            name="details"
+            id="message"
+            name="message"
             rows={5}
-            value={details}
-            onChange={(e) => setDetails(e.target.value)}
+            maxLength={2000}
             className={`mt-2 resize-y ${FIELD}`}
             placeholder="Which sweets you're after, whether you'd like a mixed platter, anything to avoid…"
           />
@@ -157,8 +121,8 @@ export function EnquiryForm() {
       </div>
 
       <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Button type="submit" variant="gold" size="lg">
-          Send Enquiry
+        <Button type="submit" variant="gold" size="lg" disabled={pending}>
+          {pending ? "Sending…" : "Send Enquiry"}
         </Button>
         <p className="text-[0.85rem] leading-relaxed text-ink-soft">
           Prefer to talk it through? Call{" "}
@@ -172,21 +136,8 @@ export function EnquiryForm() {
         </p>
       </div>
 
-      <p
-        aria-live="polite"
-        className={`mt-5 text-[0.85rem] ${sent ? "text-forest-700" : "sr-only"}`}
-      >
-        {sent
-          ? "Your email app should have opened with the enquiry ready to send. If it didn't, please call the shop instead."
-          : ""}
-      </p>
-
-      {/* DEMO NOTE — remove once a real enquiry inbox or form service is wired up. */}
-      <p className="mt-6 rounded-[10px] border border-sand-dark bg-sand/50 px-4 py-3 text-[0.78rem] leading-relaxed text-ink-soft">
-        <strong className="font-semibold text-forest-800">Demo note:</strong>{" "}
-        this form opens your email app with the details filled in. Once
-        Ammoun Sweets confirms an enquiry inbox, it will submit directly to
-        the shop instead.
+      <p aria-live="polite" className="sr-only">
+        {pending ? "Sending your enquiry" : (state.message ?? "")}
       </p>
     </form>
   );

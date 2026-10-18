@@ -1,68 +1,126 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BreadcrumbJsonLd, MenuJsonLd } from "@/components/JsonLd";
 import { ButtonLink } from "@/components/Button";
-import { CTASection } from "@/components/CTASection";
 import { MenuCategoryNav } from "@/components/MenuCategoryNav";
-import { Ornament, OrnamentDots } from "@/components/Ornament";
+import { Ornament } from "@/components/Ornament";
 import { PageHero } from "@/components/PageHero";
 import { Photo } from "@/components/Photo";
 import { Reveal } from "@/components/Reveal";
+import { ShopProductCard } from "@/components/shop/ShopProductCard";
 import { business } from "@/data/business";
-import { formatPrice, menu, priceDisclaimer } from "@/data/menu";
+import { isImageKey } from "@/data/images";
+import { getMenu } from "@/server/services/catalog";
+import { tryGetStoreSettings } from "@/server/services/settings";
 
 export const metadata: Metadata = {
   title: "Menu — Lebanese Sweets, Baklava & Knafeh",
   description:
-    "Browse the Ammoun Sweets menu: ashta favourites, baklava and pistachio sweets, knafeh, namoura, maamoul and traditional Lebanese pastries in Bass Hill, NSW.",
+    "Browse and order the Ammoun Sweets menu: ashta favourites, baklava and pistachio sweets, knafeh, namoura, maamoul and traditional Lebanese pastries in Bass Hill, NSW.",
   alternates: { canonical: "/menu" },
 };
 
-export default function MenuPage() {
+/**
+ * The shop.
+ *
+ * Products, categories, prices and availability now come from the database,
+ * but the layout is the approved one: sticky category rail, alternating
+ * category intros, gold ornaments. The only visual additions are the price
+ * being per-variant ("from $26") and the sold-out state.
+ *
+ * Dynamic rather than static because stock and prices change during the day —
+ * a cached menu that shows a sold-out item as available costs the shop a
+ * phone call.
+ */
+export const dynamic = "force-dynamic";
+
+export default async function MenuPage() {
+  const [menu, settings] = await Promise.all([getMenu(), tryGetStoreSettings()]);
+  const categoriesWithProducts = menu.filter((c) => c.products.length > 0);
+
+  if (categoriesWithProducts.length === 0) {
+    return (
+      <>
+        <PageHero
+          eyebrow="What We Make"
+          title="Our Menu"
+          subtitle="Our online menu is being updated."
+          image="display-counter"
+        />
+        <section className="bg-cream py-20">
+          <div className="container-narrow text-center">
+            <Ornament width="sm" className="mx-auto" />
+            <p className="mt-6 text-[1rem] leading-[1.75] text-ink-soft">
+              We&rsquo;re just updating the menu. Please call the shop on{" "}
+              <a
+                href={`tel:${business.phone}`}
+                className="font-semibold text-forest-800 underline underline-offset-4"
+              >
+                {business.displayPhone}
+              </a>{" "}
+              and we&rsquo;ll let you know what&rsquo;s on the counter today.
+            </p>
+          </div>
+        </section>
+      </>
+    );
+  }
+
+  const navCategories = categoriesWithProducts.map((c) => ({ id: c.slug, name: c.name }));
+
   return (
     <>
       <PageHero
-        eyebrow="What We Make"
+        eyebrow="Order Online"
         title={
           <>
             Our Menu of
-            <span className="block font-normal italic text-gold-300">
-              Lebanese Sweets
-            </span>
+            <span className="block font-normal italic text-gold-300">Lebanese Sweets</span>
           </>
         }
-        subtitle="Ashta favourites, layered baklava, pistachio-rich pastries and the traditional sweets our regulars come in for. Sold by the half kilo unless noted."
+        subtitle="Choose your size, add to the cart, and collect from the shop. Everything is made the traditional way."
         image="display-counter"
       />
 
-      <MenuCategoryNav />
+      <MenuCategoryNav categories={navCategories} />
+
+      {settings?.orderingPaused ? (
+        <div className="bg-gold-400/15 py-4">
+          <div className="container-page">
+            <p className="text-center text-[0.92rem] text-forest-800">
+              {settings.orderingPausedMessage ??
+                "Online ordering is paused at the moment — please call the shop."}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <div className="texture-paper bg-cream">
-        {menu.map((category, categoryIndex) => {
+        {categoriesWithProducts.map((category, categoryIndex) => {
           const flip = categoryIndex % 2 === 1;
 
           return (
             <section
               key={category.id}
-              id={category.id}
-              aria-labelledby={`${category.id}-heading`}
+              id={category.slug}
+              aria-labelledby={`${category.slug}-heading`}
               className="scroll-mt-32 border-b border-sand-dark/60 py-14 last:border-b-0 sm:py-18 lg:py-20"
             >
               <div className="container-page">
                 <div
-                  className={`grid gap-9 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-14 ${
+                  className={`grid gap-9 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-12 ${
                     flip ? "lg:[&>*:first-child]:order-2" : ""
                   }`}
                 >
-                  {/* — Category intro + photo ——————————————————— */}
                   <Reveal className="lg:sticky lg:top-32 lg:self-start">
                     <p className="eyebrow text-gold-700">
                       {String(categoryIndex + 1).padStart(2, "0")} &middot;{" "}
-                      {category.items.length} item
-                      {category.items.length === 1 ? "" : "s"}
+                      {category.products.length} item
+                      {category.products.length === 1 ? "" : "s"}
                     </p>
 
                     <h2
-                      id={`${category.id}-heading`}
+                      id={`${category.slug}-heading`}
                       className="mt-4 text-[1.9rem] leading-[1.08] text-forest-800 sm:text-[2.35rem]"
                     >
                       {category.name}
@@ -70,76 +128,40 @@ export default function MenuPage() {
 
                     <Ornament width="sm" className="mt-5" />
 
-                    <p className="mt-5 max-w-[38ch] text-[0.97rem] leading-[1.7] text-ink-soft">
-                      {category.tagline}
-                    </p>
+                    {category.description ? (
+                      <p className="mt-5 max-w-[38ch] text-[0.97rem] leading-[1.7] text-ink-soft">
+                        {category.description}
+                      </p>
+                    ) : null}
 
-                    <div className="arch-top relative mt-8 aspect-[4/3] overflow-hidden shadow-[0_22px_50px_-30px_rgba(18,59,42,0.5)]">
-                      <Photo
-                        image={category.image}
-                        fill
-                        eager={categoryIndex === 0}
-                        sizes="(min-width: 1024px) 34vw, 92vw"
-                        className="object-cover"
-                      />
-                    </div>
+                    {isImageKey(category.image) ? (
+                      <div className="arch-top relative mt-8 hidden aspect-[4/3] overflow-hidden shadow-[0_22px_50px_-30px_rgba(18,59,42,0.5)] lg:block">
+                        <Photo
+                          image={category.image}
+                          fill
+                          eager={categoryIndex === 0}
+                          sizes="32vw"
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : null}
                   </Reveal>
 
-                  {/* — Items ——————————————————————————————————— */}
-                  <div>
-                    <ul className="divide-y divide-sand-dark/70 border-y border-sand-dark/70">
-                      {category.items.map((item, itemIndex) => (
-                          <li key={item.id} id={item.id} className="scroll-mt-32">
-                            <Reveal anim="fade" delay={Math.min(itemIndex * 50, 200)}>
-                              <div className="flex gap-4 py-6 sm:gap-6 sm:py-7">
-                                <div className="group/thumb relative h-20 w-20 shrink-0 overflow-hidden rounded-[12px] border border-sand-dark/70 sm:h-28 sm:w-28">
-                                  <Photo
-                                    image={item.image}
-                                    fill
-                                    sizes="(min-width: 640px) 7rem, 5rem"
-                                    className="object-cover transition-transform duration-700 ease-[var(--ease-soft)] group-hover/thumb:scale-110"
-                                  />
-                                </div>
-
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                    <h3 className="text-[1.3rem] leading-tight text-forest-800 sm:text-[1.45rem]">
-                                      {item.name}
-                                    </h3>
-                                    {item.alsoKnownAs ? (
-                                      <span
-                                        lang={/[؀-ۿ]/.test(item.alsoKnownAs) ? "ar" : undefined}
-                                        dir={/[؀-ۿ]/.test(item.alsoKnownAs) ? "rtl" : undefined}
-                                        className="text-[0.92rem] text-ink-faint"
-                                      >
-                                        {item.alsoKnownAs}
-                                      </span>
-                                    ) : null}
-                                  </div>
-
-                                  <p className="mt-2 text-[0.9rem] leading-[1.65] text-ink-soft">
-                                    {item.description}
-                                  </p>
-
-                                  <div className="mt-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                    <span className="font-display text-[1.15rem] font-semibold text-forest-800">
-                                      {formatPrice(item.price)}
-                                    </span>
-                                    {item.size ? (
-                                      <>
-                                        <OrnamentDots className="translate-y-[-0.1em]" />
-                                        <span className="text-[0.8rem] uppercase tracking-[0.14em] text-ink-faint">
-                                          {item.size}
-                                        </span>
-                                      </>
-                                    ) : null}
-                                  </div>
-                                </div>
-                              </div>
-                            </Reveal>
-                          </li>
-                      ))}
-                    </ul>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    {category.products.map((product, index) => (
+                      <Reveal
+                        key={product.id}
+                        anim="rise"
+                        delay={Math.min(index * 60, 240)}
+                        className="h-full"
+                      >
+                        <ShopProductCard
+                          product={product}
+                          categoryLabel={category.name}
+                          priority={categoryIndex === 0 && index < 2}
+                        />
+                      </Reveal>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -148,23 +170,29 @@ export default function MenuPage() {
         })}
       </div>
 
-      {/* — Disclaimer ————————————————————————————————————— */}
       <section className="bg-sand/45 py-12">
         <div className="container-narrow text-center">
           <Ornament width="sm" className="mx-auto" />
           <p className="mt-6 text-[0.9rem] leading-[1.75] text-ink-soft">
-            {priceDisclaimer}
+            Prices include GST where applicable. Platter sizes and seasonal items can be
+            arranged in store.
           </p>
           <p className="mt-4 text-[0.9rem] leading-[1.75] text-ink-soft">
-            Looking for something you can&rsquo;t see here, or a larger
-            quantity? Call us on{" "}
+            Looking for something you can&rsquo;t see here, or a larger quantity? Call us on{" "}
             <a
               href={`tel:${business.phone}`}
               className="font-semibold text-forest-800 underline underline-offset-4 transition-colors hover:text-forest-700"
             >
               {business.displayPhone}
             </a>{" "}
-            and we&rsquo;ll let you know what we can do.
+            or{" "}
+            <Link
+              href="/catering#enquiry"
+              className="font-semibold text-forest-800 underline underline-offset-4 transition-colors hover:text-forest-700"
+            >
+              send an enquiry
+            </Link>
+            .
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
             <ButtonLink href="/catering#enquiry" variant="ghost" size="lg">
@@ -174,9 +202,7 @@ export default function MenuPage() {
         </div>
       </section>
 
-      <CTASection />
-
-      <MenuJsonLd />
+      <MenuJsonLd menu={categoriesWithProducts} />
       <BreadcrumbJsonLd
         items={[
           { name: "Home", path: "/" },

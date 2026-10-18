@@ -366,3 +366,15 @@ export type ImageKey = keyof typeof images;
 export function img(key: ImageKey): SiteImage {
   return images[key];
 }
+
+/**
+ * Narrows an arbitrary string to a registry key.
+ *
+ * Product images are stored in the database as plain strings, so a row can
+ * legitimately reference a key that no longer exists (or an uploaded file
+ * path). Anything that isn't a known key renders as a neutral placeholder
+ * rather than throwing.
+ */
+export function isImageKey(value: string | null | undefined): value is ImageKey {
+  return typeof value === "string" && Object.prototype.hasOwnProperty.call(images, value);
+}

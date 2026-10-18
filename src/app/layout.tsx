@@ -3,6 +3,9 @@ import { Cormorant_Garamond, Manrope } from "next/font/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LocalBusinessJsonLd } from "@/components/JsonLd";
+import { CartProvider } from "@/components/shop/CartProvider";
+import { CartDrawer } from "@/components/shop/CartDrawer";
+import { AnnouncementBar } from "@/components/shop/AnnouncementBar";
 import { business } from "@/data/business";
 import { img } from "@/data/images";
 import "./globals.css";
@@ -113,9 +116,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </noscript>
       </head>
       <body className="min-h-dvh bg-cream antialiased">
-        <Header />
-        <main id="main">{children}</main>
-        <Footer />
+        {/*
+          The cart provider wraps everything so the header badge, the product
+          pages and the drawer all read one source of truth.
+        */}
+        <CartProvider>
+          <AnnouncementBar />
+          <Header />
+          <main id="main">{children}</main>
+          <Footer />
+          <CartDrawer />
+        </CartProvider>
         <LocalBusinessJsonLd />
       </body>
     </html>

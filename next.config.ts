@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  /*
+   * Database drivers must not be bundled.
+   *
+   * PGlite ships a WebAssembly runtime plus a `.data` file it locates relative
+   * to its own module path; bundling rewrites that path to a placeholder and
+   * the driver fails at runtime with ERR_INVALID_FILE_URL_PATH — only in a
+   * production build, which is exactly where you don't want to find out. `pg`
+   * has native bindings with the same problem. Leaving both external makes
+   * Next require them from node_modules at runtime.
+   */
+  serverExternalPackages: ["@electric-sql/pglite", "pg"],
+
   images: {
     // AVIF first, WebP as the fallback — both are a lot smaller than the
     // source JPEGs for food photography.

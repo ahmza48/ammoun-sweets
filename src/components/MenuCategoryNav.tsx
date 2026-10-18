@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { menu } from "@/data/menu";
 
 /**
  * Sticky category rail on the menu page.
@@ -11,11 +10,13 @@ import { menu } from "@/data/menu";
  * needs scripting.
  */
 
-export function MenuCategoryNav() {
-  const [activeId, setActiveId] = useState(menu[0]?.id ?? "");
+export type NavCategory = { id: string; name: string };
+
+export function MenuCategoryNav({ categories }: { categories: NavCategory[] }) {
+  const [activeId, setActiveId] = useState(categories[0]?.id ?? "");
 
   useEffect(() => {
-    const sections = menu
+    const sections = categories
       .map((category) => document.getElementById(category.id))
       .filter((node): node is HTMLElement => node !== null);
 
@@ -34,7 +35,7 @@ export function MenuCategoryNav() {
 
     sections.forEach((section) => observer.observe(section));
     return () => observer.disconnect();
-  }, []);
+  }, [categories]);
 
   return (
     <nav
@@ -47,7 +48,7 @@ export function MenuCategoryNav() {
           a plain centred wrap from md up so nothing is silently clipped.
         */}
         <ul className="swipe-rail items-center gap-2 py-3 md:flex-wrap md:justify-center md:gap-1.5 md:overflow-visible">
-          {menu.map((category) => {
+          {categories.map((category) => {
             const active = activeId === category.id;
             return (
               <li key={category.id} className="shrink-0">

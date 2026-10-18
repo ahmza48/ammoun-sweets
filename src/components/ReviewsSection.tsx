@@ -40,7 +40,7 @@ export function ReviewsSection() {
             href={business.links.googleMaps}
             target="_blank"
             rel="noopener noreferrer"
-            className="link-underline eyebrow inline-block text-gold-300 transition-colors duration-300 hover:text-gold-200"
+            className="link-underline eyebrow inline-block px-2 py-2 text-gold-300 transition-colors duration-300 hover:text-gold-200"
           >
             Read all reviews on Google
           </a>

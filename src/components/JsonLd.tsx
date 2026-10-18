@@ -1,5 +1,6 @@
 import { business } from "@/data/business";
-import { menu } from "@/data/menu";
+import type { CategoryView, ProductView } from "@/server/services/catalog";
+import { cheapestVariant, isPurchasable } from "@/server/services/catalog";
 
 /**
  * LOCAL BUSINESS STRUCTURED DATA
@@ -64,8 +65,12 @@ export function LocalBusinessJsonLd() {
   return <Script id="ld-business" data={data} />;
 }
 
-/** Menu structured data, generated from the same data file the page renders. */
-export function MenuJsonLd() {
+/**
+ * Menu structured data, generated from the live database rows the page just
+ * rendered — so the prices in the markup can never drift from the prices on
+ * screen, which is exactly the mismatch that gets rich results suppressed.
+ */
+export function MenuJsonLd({ menu }: { menu: CategoryView[] }) {
   const data = {
     "@context": "https://schema.org",
     "@type": "Menu",
@@ -75,26 +80,76 @@ export function MenuJsonLd() {
     hasMenuSection: menu.map((category) => ({
       "@type": "MenuSection",
       name: category.name,
-      description: category.tagline,
-      hasMenuItem: category.items.map((item) => ({
+      description: category.description ?? undefined,
+      hasMenuItem: category.products.map((product) => ({
         "@type": "MenuItem",
-        name: item.name,
-        description: item.description,
-        ...(item.price !== null
-          ? {
-              offers: {
-                "@type": "Offer",
-                price: item.price,
-                priceCurrency: "AUD",
-                ...(item.size ? { eligibleQuantity: { "@type": "QuantitativeValue", name: item.size } } : {}),
-              },
-            }
-          : {}),
+        name: product.name,
+        description: product.shortDescription ?? product.description ?? undefined,
+        url: `${business.siteUrl}/menu/${product.slug}`,
+        offers: product.variants
+          .filter((v) => v.active && v.price > 0)
+          .map((variant) => ({
+            "@type": "Offer",
+            name: variant.name,
+            price: (variant.price / 100).toFixed(2),
+            priceCurrency: "AUD",
+            availability: isPurchasable(product)
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+          })),
       })),
     })),
   };
 
   return <Script id="ld-menu" data={data} />;
+}
+
+/**
+ * Product structured data for a single product page.
+ *
+ * `offers` reflects real variant prices and real availability. No rating and
+ * no review markup: we have no first-party reviews to cite, and inventing
+ * them is both against Google's guidelines and dishonest.
+ */
+export function ProductJsonLd({ product }: { product: ProductView }) {
+  const cheapest = cheapestVariant(product.variants);
+  const sellable = product.variants.filter((v) => v.active && v.price > 0);
+  if (!cheapest || sellable.length === 0) return null;
+
+  const availability = isPurchasable(product)
+    ? "https://schema.org/InStock"
+    : "https://schema.org/OutOfStock";
+
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${business.siteUrl}/menu/${product.slug}#product`,
+    name: product.name,
+    description: product.shortDescription ?? product.description ?? undefined,
+    category: product.categoryName ?? undefined,
+    image: product.image ? `${business.siteUrl}/images/${product.image}.jpg` : undefined,
+    brand: { "@type": "Brand", name: business.name },
+    offers:
+      sellable.length === 1
+        ? {
+            "@type": "Offer",
+            price: (sellable[0].price / 100).toFixed(2),
+            priceCurrency: "AUD",
+            availability,
+            url: `${business.siteUrl}/menu/${product.slug}`,
+          }
+        : {
+            "@type": "AggregateOffer",
+            priceCurrency: "AUD",
+            lowPrice: (Math.min(...sellable.map((v) => v.price)) / 100).toFixed(2),
+            highPrice: (Math.max(...sellable.map((v) => v.price)) / 100).toFixed(2),
+            offerCount: sellable.length,
+            availability,
+            url: `${business.siteUrl}/menu/${product.slug}`,
+          },
+  };
+
+  return <Script id="ld-product" data={data} />;
 }
 
 export function BreadcrumbJsonLd({

@@ -67,6 +67,19 @@
     /* Sticky header height + breathing room for in-page anchors. */
     scroll-padding-top: 6.5rem;
     -webkit-text-size-adjust: 100%;
+
+    /*
+       `clip`, not `hidden`. Both stop sideways scrolling, but `hidden` turns
+       the element into a scroll container, which silently breaks every
+       `position: sticky` descendant — the menu page's category rail among
+       them. `clip` has no such side effect.
+
+       This belongs on <html> as well as <body>: a `position: fixed` child (the
+       header, and the progress rule inside it) is not clipped by the body's
+       overflow, so on a narrow phone it could widen the document by a few
+       pixels and produce a horizontal scrollbar with nothing visible in it.
+    */
+    overflow-x: clip;
   }
 
   body {
@@ -76,8 +89,8 @@
     font-feature-settings: "kern", "liga";
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    /* Nothing on this site should ever scroll sideways. */
-    overflow-x: hidden;
+    /* Nothing on this site should ever scroll sideways. See <html> above. */
+    overflow-x: clip;
   }
 
   h1,
@@ -296,6 +309,21 @@ img[data-photo][data-loaded="true"] {
   --reveal-scale: 1.035;
 }
 
+/*
+   A sideways entrance needs a gutter to travel through. The page container
+   runs edge to edge below `lg`, so on a phone the 32px offset starts the
+   element past the viewport edge: it widened the document by exactly that
+   much on the product page, where the details column uses `anim="right"`.
+   Below that breakpoint these reveals keep their vertical motion only.
+*/
+@media (max-width: 1023px) {
+  [data-reveal][data-anim="left"],
+  [data-reveal][data-anim="right"] {
+    --reveal-x: 0px;
+    --reveal-y: 26px;
+  }
+}
+
 [data-reveal][data-revealed="true"] {
   opacity: 1;
   transform: none;
@@ -379,6 +407,17 @@ img[data-photo][data-loaded="true"] {
   }
 }
 
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes dialog-in {
   from {
     opacity: 0;
@@ -416,6 +455,11 @@ img[data-photo][data-loaded="true"] {
 /* Route change. Short on purpose — longer reads as latency, not polish. */
 @utility page-enter {
   animation: page-in 0.45s var(--ease-soft) both;
+}
+
+/* Cart slide-over. Comes in from the right, matching the panel's position. */
+@utility drawer-enter {
+  animation: drawer-in 0.38s var(--ease-soft) both;
 }
 
 @utility dialog-enter {

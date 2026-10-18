@@ -5,3 +5,20 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+.pglite/
+scratch/
+.env*.local
+
+# Playwright: a saved admin session cookie must never be committed.
+e2e/.auth/
+
+# Playwright output
+/test-results/
+/playwright-report/
+/blob-report/
+
+# This is a pnpm repo (see `packageManager` in package.json). A stray
+# package-lock.json makes the deploy platform guess which manager to use, and
+# the two lockfiles drift apart silently.
+package-lock.json
+yarn.lock

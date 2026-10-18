@@ -66,7 +66,7 @@ export function Footer() {
                   href={business.links.order}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[0.92rem] text-cream/75 transition-colors duration-300 hover:text-gold-300"
+                  className="-my-1 inline-block py-1 text-[0.92rem] text-cream/75 transition-colors duration-300 hover:text-gold-300"
                 >
                   Order Online
                 </a>
@@ -88,7 +88,7 @@ export function Footer() {
               href={business.links.directions}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-block text-[0.92rem] text-gold-300 underline-offset-4 transition-colors duration-300 hover:text-gold-200 hover:underline"
+              className="mt-2 inline-block py-1 text-[0.92rem] text-gold-300 underline-offset-4 transition-colors duration-300 hover:text-gold-200 hover:underline"
             >
               Get directions
             </a>
@@ -111,7 +111,7 @@ export function Footer() {
               <li>
                 <a
                   href={`tel:${business.phone}`}
-                  className="text-cream/75 transition-colors duration-300 hover:text-gold-300"
+                  className="-my-1 inline-block py-1 text-cream/75 transition-colors duration-300 hover:text-gold-300"
                 >
                   {business.displayPhone}
                 </a>
@@ -122,7 +122,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/catering#enquiry"
-                  className="text-gold-300 underline-offset-4 transition-colors duration-300 hover:text-gold-200 hover:underline"
+                  className="-my-1 inline-block py-1 text-gold-300 underline-offset-4 transition-colors duration-300 hover:text-gold-200 hover:underline"
                 >
                   Enquire about a large order
                 </Link>
@@ -165,7 +165,8 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   return (
     <Link
       href={href}
-      className="text-[0.92rem] text-cream/75 transition-colors duration-300 hover:text-gold-300"
+      /* py-1 lifts the hit area to ~28px — WCAG 2.5.8 wants at least 24x24. */
+      className="-my-1 inline-block py-1 text-[0.92rem] text-cream/75 transition-colors duration-300 hover:text-gold-300"
     >
       {children}
     </Link>

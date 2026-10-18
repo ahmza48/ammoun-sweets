@@ -7,6 +7,7 @@ import { business } from "@/data/business";
 import { mainNav } from "@/data/navigation";
 import { ButtonLink } from "./Button";
 import { Logo } from "./Logo";
+import { CartButton } from "./shop/CartButton";
 import { Ornament } from "./Ornament";
 
 /**
@@ -186,13 +187,17 @@ export function Header() {
             </ul>
           </nav>
 
-          <div className="hidden lg:flex lg:items-center lg:gap-3">
-            <ButtonLink href={business.links.order} variant="gold" size="md" external>
+          <div className="hidden lg:flex lg:items-center lg:gap-2">
+            <CartButton tone="light" />
+            {/* Now an internal route — ordering happens on this site. */}
+            <ButtonLink href="/menu" variant="gold" size="md">
               Order Online
             </ButtonLink>
           </div>
 
-          {/* — Mobile toggle ————————————————————————————————— */}
+          {/* — Mobile: cart + hamburger ——————————————————————— */}
+          <div className="flex items-center gap-1 lg:hidden">
+            <CartButton tone="light" />
           <button
             ref={toggleRef}
             type="button"
@@ -223,6 +228,7 @@ export function Header() {
               />
             </span>
           </button>
+          </div>
         </div>
       </div>
 
@@ -268,7 +274,7 @@ export function Header() {
           <Ornament tone="light" width="full" className="my-7" />
 
           <div className="flex flex-col gap-3">
-            <ButtonLink href={business.links.order} variant="gold" size="lg" external>
+            <ButtonLink href="/menu" variant="gold" size="lg">
               Order Online
             </ButtonLink>
             <ButtonLink href={`tel:${business.phone}`} variant="outline" size="lg">
